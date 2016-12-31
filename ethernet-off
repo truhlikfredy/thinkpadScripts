@@ -1,0 +1,5 @@
+echo pred:
+lsmod | grep e1000e
+rmmod e1000e
+echo po:
+lsmod | grep e1000e

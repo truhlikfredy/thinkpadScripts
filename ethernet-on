@@ -1,0 +1,2 @@
+modprobe e1000e
+lsmod | grep e1000e
