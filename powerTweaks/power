@@ -1,0 +1,233 @@
+#!/bin/bash
+
+#neviem co robia, mal by som ich vypnut a pozer powertop co pise, myslim ze nieco okolo chipsetu
+#MEI controller
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:03.0/power/control';
+
+#neviem
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1f.0/power/control';
+
+#82801 PCI bridge
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1e.0/power/control';
+
+
+#asi citlivost
+echo -n 185 > /sys/devices/platform/i8042/serio1/serio2/speed
+echo -n 185 > /sys/devices/platform/i8042/serio1/serio2/sensitivity
+
+
+
+ # Shell script to reduce energy consumption when running battery. Place
+ # it in /etc/pm/power.d/ and give execution rights.
+
+#bluetooth and broadband
+rfkill block `rfkill list | grep Bluetooth | cut -d: -f1`
+wwan=`rfkill list | grep WAN | cut -d: -f1`
+if [ "$wwan" -eq "$wwan" ] 2>/dev/null; then
+  rfkill $wwan
+fi
+
+
+#original je 95% threshold
+#echo -n 100 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+#echo -n 1 > /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
+#echo -n 0 > /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy
+
+#SSD
+
+# Economize the SSD
+sysctl -w vm.swappiness=1 # Strongly discourage swapping
+sysctl -w vm.vfs_cache_pressure=50 # Don't shrink the inode cache aggressively
+
+echo 25 > /proc/sys/vm/dirty_ratio
+echo 15 > /proc/sys/vm/dirty_background_ratio
+
+# if on_ac_power; then
+
+#Wireless Power Saving for interface wlan0    
+#iw dev wlan0 set power_save on
+
+#Enable Audio codec power management    
+echo '1' > '/sys/module/snd_hda_intel/parameters/power_save'; 
+
+#Enable SATA link power management for host2    
+echo 'min_power' > '/sys/class/scsi_host/host2/link_power_management_policy'; 
+
+#Enable SATA link power management for host3    
+echo 'min_power' > '/sys/class/scsi_host/host3/link_power_management_policy'; 
+
+#Enable SATA link power management for host0    
+echo 'min_power' > '/sys/class/scsi_host/host0/link_power_management_policy'; 
+
+#Enable SATA link power management for host1    
+echo 'min_power' > '/sys/class/scsi_host/host1/link_power_management_policy'; 
+
+#NMI watchdog should be turned off    
+echo '0' > '/proc/sys/kernel/nmi_watchdog'; 
+
+#Power Aware CPU scheduler    
+#echo '1' > '/sys/devices/system/cpu/sched_mc_power_savings'; 
+
+#VM writeback timeout    
+echo '1500' > '/proc/sys/vm/dirty_writeback_centisecs'; 
+
+#Autosuspend for USB device Ericsson F3507g Mobile Broadband Minicard Composite Device [Ericsson]    
+#echo 'auto' > '/sys/bus/usb/devices/2-4/power/control'; 
+
+for X in /sys/bus/usb/devices/*; do 
+    if [ "0bdb" == "$(cat "$X/idVendor" 2>/dev/null)" -a "1900" == "$(cat "$X/idProduct" 2>/dev/null)" ]
+    then
+	echo $X modem powersave
+	echo 'auto' > "$X/power/control";
+    fi
+done
+
+#camera
+##echo 'auto' > '/sys/bus/usb/devices/1-6/power/control';
+#t520 webcam 04f2:b217
+for X in /sys/bus/usb/devices/*; do 
+#    if [ "17ef" == "$(cat "$X/idVendor" 2>/dev/null)" -a "1004" == "$(cat "$X/idProduct" 2>/dev/null)" ]
+    if [ "04f2" == "$(cat "$X/idVendor" 2>/dev/null)" -a "b217" == "$(cat "$X/idProduct" 2>/dev/null)" ]
+    then
+	echo $X webcam powersave
+	echo 'auto' > "$X/power/control";
+    fi
+done
+
+#Autosuspend for USB device ThinkPad Bluetooth with Enhanced Data Rate II [Lenovo Computer Corp]    
+#echo 'auto' > '/sys/bus/usb/devices/4-2/power/control'; 
+
+for X in /sys/bus/usb/devices/*; do 
+    if [ "0a5c" == "$(cat "$X/idVendor" 2>/dev/null)" -a "2145" == "$(cat "$X/idProduct" 2>/dev/null)" ]
+    then
+	echo $X bluetooth powersave
+	echo 'auto' > "$X/power/control";
+    fi
+done
+
+#instead of echo 2401000 just 2400000 so it will not show as turbo in powertop
+#echo 2400000 > '/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq';
+#echo 2400000 > '/sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq';
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #6    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1a.2/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation Mobile 4 Series Chipset Integrated Graphics Controller    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:02.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #4    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1a.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation Mobile 4 Series Chipset Memory Controller Hub    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:00.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #1    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1d.7/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801IBM/IEM (ICH9M/ICH9M-E) 4 port SATA Controller [AHCI mode]    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1f.2/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) SMBus Controller    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1f.3/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation PRO/Wireless 5100 AGN [Shiloh] Network Connection    
+echo 'auto' > '/sys/bus/pci/devices/0000:03:00.0/power/control'; 
+
+#Runtime PM for PCI Device Ricoh Co Ltd RL5c476 II    
+#echo 'auto' > '/sys/bus/pci/devices/0000:15:00.0/power/control'; 
+
+#Runtime PM for PCI Device Ricoh Co Ltd R5C832 IEEE 1394 Controller    
+#echo 'auto' > '/sys/bus/pci/devices/0000:15:00.1/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #2    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1a.7/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) HD Audio Controller    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1b.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) PCI Express Port 1    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1c.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) PCI Express Port 2    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1c.1/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) PCI Express Port 4    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1c.3/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) PCI Express Port 5    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1c.4/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #1    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:1d.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #2    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1d.1/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #3    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1d.2/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82567LF Gigabit Network Connection    
+echo 'auto' > '/sys/bus/pci/devices/0000:00:19.0/power/control'; 
+
+#Runtime PM for PCI Device Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #5    
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:1a.1/power/control'; 
+
+#Wake-on-lan status for device eth0    
+#ethtool -s eth2 wol d;
+
+# End AC powered settings ----------------------------------------------#
+
+# else
+
+ # Start battery powered settings ---------------------------------------#
+
+ # End battery powered settings -----------------------------------------#
+
+# fi
+
+
+
+
+
+
+#---second t400
+
+#ina wifi
+#iw dev wlan1 set power_save on
+
+#ati karta
+#echo 'auto' > '/sys/bus/pci/devices/0000:01:00.0/power/control'
+
+#intel graphics ports
+#echo 'auto' > '/sys/bus/pci/devices/0000:00:01.0/power/control';
+
+#aby menej casto sa budilo tak menej casto zistuj load
+
+#normalne je 10000Hz
+#echo 50 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
+
+#normalne je 100%
+#echo 100 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+
+#normalne 1
+#echo 1 > /sys/devices/systemecho 'auto' > '/sys/bus/usb/devices/1-1.6/power/control'/cpu/cpufreq/ondemand/sampling_down_factor
+
+
+#--------------------t520
+#sata
+echo 'min_power' > '/sys/class/scsi_host/host4/link_power_management_policy'
+echo 'min_power' > '/sys/class/scsi_host/host5/link_power_management_policy'
+#webcam
+#echo 'auto' > '/sys/bus/usb/devices/1-1.6/power/control'
+#upravil som hore script aby webcam bral
+
+#ricoh
+echo 'auto' > '/sys/bus/pci/devices/0000:0d:00.3/power/control'
+echo 'auto' > '/sys/bus/pci/devices/0000:0d:00.0/power/control'
+#chipset
+echo 'auto' > '/sys/bus/pci/devices/0000:00:16.0/power/control'
+#wake on lan
+ethtool -s eth4 wol d;
+
+#wifi powersave
+iw dev wlan5 set power_save on
